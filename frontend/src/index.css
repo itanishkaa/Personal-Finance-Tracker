@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-paper text-ink font-body antialiased;
+  }
+}
+
+@layer components {
+  /* Ledger stub: KPI card with a notched top-right corner and a rotated
+     stamp label, echoing a physical accounting stub. This is the page's
+     signature element. */
+  .stub {
+    @apply relative bg-card rounded-lg border border-line p-5;
+    clip-path: polygon(
+      0 0,
+      calc(100% - 20px) 0,
+      100% 20px,
+      100% 100%,
+      0 100%
+    );
+  }
+
+  .stub::before {
+    content: "";
+    @apply absolute top-0 right-0 border-line;
+    width: 20px;
+    height: 20px;
+    border-left: 1px solid #d8dbd3;
+    border-bottom: 1px solid #d8dbd3;
+    background: #eef0ee;
+    clip-path: polygon(0 0, 100% 0, 100% 100%);
+  }
+
+  .stub-label {
+    @apply absolute top-3 right-6 text-[10px] tracking-[0.18em] uppercase text-ink-soft/60 font-display;
+    transform: rotate(4deg);
+  }
+
+  /* Ledger line: dotted leader between a description and its amount,
+     like an invoice or checkbook register. */
+  .ledger-row {
+    @apply flex items-baseline gap-2;
+  }
+
+  .ledger-leader {
+    @apply flex-1 border-b border-dotted border-line translate-y-[-4px];
+  }
+
+  .amount {
+    @apply font-mono tabular-nums;
+  }
+}
