@@ -3,13 +3,13 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api.routes import auth, categories, transactions
+from app.api.routes import analytics, auth, budgets, categories, transactions
 from app.core.config import settings
 from app.db.base import Base
 from app.db.session import engine
 
 # Import all models here so Base.metadata is aware of every table before create_all.
-from app.models import category, transaction, user  # noqa: F401
+from app.models import budget, category, transaction, user  # noqa: F401
 
 app = FastAPI(title="FinTrack API", version="0.1.0")
 
@@ -51,3 +51,5 @@ def health_check():
 app.include_router(auth.router)
 app.include_router(categories.router)
 app.include_router(transactions.router)
+app.include_router(analytics.router)
+app.include_router(budgets.router)

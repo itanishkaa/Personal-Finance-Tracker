@@ -1,4 +1,10 @@
+import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+
+const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+  `text-sm font-medium transition-colors ${
+    isActive ? "text-teal" : "text-ink-soft hover:text-ink"
+  }`;
 
 function Header() {
   const { user, logout } = useAuth();
@@ -13,16 +19,29 @@ function Header() {
           </p>
         </div>
         {user && (
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-ink-soft hidden sm:inline">
-              {user.name}
-            </span>
-            <button
-              onClick={logout}
-              className="text-sm text-ink-soft hover:text-brick font-medium transition-colors"
-            >
-              Sign out
-            </button>
+          <div className="flex items-center gap-6">
+            <nav className="flex items-center gap-4">
+              <NavLink to="/" end className={navLinkClass}>
+                Dashboard
+              </NavLink>
+              <NavLink to="/analytics" className={navLinkClass}>
+                Analytics
+              </NavLink>
+              <NavLink to="/budgets" className={navLinkClass}>
+                Budgets
+              </NavLink>
+            </nav>
+            <div className="flex items-center gap-4 border-l border-line pl-4">
+              <span className="text-sm text-ink-soft hidden sm:inline">
+                {user.name}
+              </span>
+              <button
+                onClick={logout}
+                className="text-sm text-ink-soft hover:text-brick font-medium transition-colors"
+              >
+                Sign out
+              </button>
+            </div>
           </div>
         )}
       </div>

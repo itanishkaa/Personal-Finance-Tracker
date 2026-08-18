@@ -6,10 +6,12 @@ import {
   deleteTransaction,
 } from "../api/transactions";
 import { getCategories } from "../api/categories";
+import { getOverview } from "../api/analytics";
 import { extractErrorMessage } from "../api/client";
 import type { Category } from "../types/category";
+import type { Overview } from "../types/analytics";
 import type { Transaction, TransactionInput } from "../types/transaction";
-import { formatCurrency, isCurrentMonth } from "../utils/format";
+import { formatCurrency } from "../utils/format";
 import Header from "../components/Header";
 import TransactionForm from "../components/TransactionForm";
 import TransactionList from "../components/TransactionList";
@@ -20,11 +22,30 @@ import StubCard from "../components/StubCard";
 function Dashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [overview, setOverview] = useState<Overview | null>(null);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [filterApplied, setFilterApplied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // KPI figures come from the backend's Pandas-backed /analytics/overview
+  // (Phase 4) rather than being computed client-side, and are scoped to
+  // whatever date range is currently applied - defaulting to the current
+  // month on the backend when no range is given, same as before.
+  const fetchOverview = async (
+    appliedStart = startDate,
+    appliedEnd = endDate,
+  ) => {
+    try {
+      const data = await getOverview({
+        startDate: appliedStart || undefined,
+        endDate: appliedEnd || undefined,
+      });
+      setOverview(data);
+    } catch {
+      setOverview(null);
+    }
+  };
 
   const fetchTransactions = async (
     appliedStart = startDate,
@@ -49,8 +70,15 @@ function Dashboard() {
     }
   };
 
+  const refresh = async (appliedStart = startDate, appliedEnd = endDate) => {
+    await Promise.all([
+      fetchTransactions(appliedStart, appliedEnd),
+      fetchOverview(appliedStart, appliedEnd),
+    ]);
+  };
+
   useEffect(() => {
-    fetchTransactions();
+    refresh();
     getCategories()
       .then(setCategories)
       .catch(() => setCategories([]));
@@ -60,7 +88,7 @@ function Dashboard() {
   const handleAddTransaction = async (transaction: TransactionInput) => {
     try {
       await addTransaction(transaction);
-      await fetchTransactions();
+      await refresh();
     } catch (err) {
       setError(extractErrorMessage(err, "Failed to add entry."));
     }
@@ -72,7 +100,7 @@ function Dashboard() {
   ) => {
     try {
       await updateTransaction(id, transaction);
-      await fetchTransactions();
+      await refresh();
     } catch (err) {
       setError(extractErrorMessage(err, "Failed to update entry."));
     }
@@ -81,41 +109,21 @@ function Dashboard() {
   const handleDeleteTransaction = async (id: number) => {
     try {
       await deleteTransaction(id);
-      await fetchTransactions();
+      await refresh();
     } catch (err) {
       setError(extractErrorMessage(err, "Failed to delete entry."));
     }
   };
 
   const handleApplyFilter = () => {
-    setFilterApplied(true);
-    fetchTransactions();
+    refresh();
   };
 
   const handleClearFilter = () => {
     setStartDate("");
     setEndDate("");
-    setFilterApplied(false);
-    fetchTransactions("", "");
+    refresh("", "");
   };
-
-  // KPI figures, scoped to the currently loaded (possibly filtered)
-  // transactions, falling back to current-month totals when no filter
-  // is applied. These are computed client-side for now; a proper
-  // analytics endpoint (Pandas-backed) lands in Phase 4.
-  const scopedTransactions =
-    !filterApplied && !startDate && !endDate
-      ? transactions.filter((t) => isCurrentMonth(t.date))
-      : transactions;
-
-  const income = scopedTransactions
-    .filter((t) => t.type === "income")
-    .reduce((sum, t) => sum + t.amount, 0);
-  const expenses = scopedTransactions
-    .filter((t) => t.type === "expense")
-    .reduce((sum, t) => sum + t.amount, 0);
-  const balance = income - expenses;
-  const savingsRate = income > 0 ? (balance / income) * 100 : 0;
 
   return (
     <div className="min-h-screen bg-paper">
@@ -123,22 +131,34 @@ function Dashboard() {
 
       <main className="max-w-5xl mx-auto px-6 py-8 flex flex-col gap-6">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <StubCard
-            label="Balance"
-            value={formatCurrency(balance)}
-            tone="ink"
-          />
-          <StubCard label="Income" value={formatCurrency(income)} tone="teal" />
-          <StubCard
-            label="Expenses"
-            value={formatCurrency(expenses)}
-            tone="brick"
-          />
-          <StubCard
-            label="Savings rate"
-            value={`${savingsRate.toFixed(1)}%`}
-            tone="gold"
-          />
+          {overview ? (
+            <>
+              <StubCard
+                label="Balance"
+                value={formatCurrency(overview.balance)}
+                tone="ink"
+              />
+              <StubCard
+                label="Income"
+                value={formatCurrency(overview.income)}
+                tone="teal"
+              />
+              <StubCard
+                label="Expenses"
+                value={formatCurrency(overview.expenses)}
+                tone="brick"
+              />
+              <StubCard
+                label="Savings rate"
+                value={`${overview.savings_rate.toFixed(1)}%`}
+                tone="gold"
+              />
+            </>
+          ) : (
+            <div className="col-span-2 sm:col-span-4 bg-card border border-line rounded-lg p-8 text-center text-ink-soft text-sm">
+              Loading…
+            </div>
+          )}
         </div>
 
         <TransactionForm
@@ -168,7 +188,7 @@ function Dashboard() {
           <div className="bg-brick-light border border-brick/30 rounded-lg p-6 text-center">
             <p className="text-brick font-medium mb-3">{error}</p>
             <button
-              onClick={() => fetchTransactions()}
+              onClick={() => refresh()}
               className="bg-brick hover:bg-brick/90 text-white text-sm font-medium rounded-md px-4 py-2 transition-colors"
             >
               Try again
