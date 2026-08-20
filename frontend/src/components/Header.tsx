@@ -30,6 +30,9 @@ function Header() {
               <NavLink to="/budgets" className={navLinkClass}>
                 Budgets
               </NavLink>
+              <NavLink to="/goals" className={navLinkClass}>
+                Goals
+              </NavLink>
             </nav>
             <div className="flex items-center gap-4 border-l border-line pl-4">
               <span className="text-sm text-ink-soft hidden sm:inline">
