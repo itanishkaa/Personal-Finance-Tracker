@@ -33,6 +33,9 @@ function Header() {
               <NavLink to="/goals" className={navLinkClass}>
                 Goals
               </NavLink>
+              <NavLink to="/recurring" className={navLinkClass}>
+                Recurring
+              </NavLink>
             </nav>
             <div className="flex items-center gap-4 border-l border-line pl-4">
               <span className="text-sm text-ink-soft hidden sm:inline">

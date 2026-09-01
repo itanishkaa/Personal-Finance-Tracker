@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from app.models.budget import Budget
     from app.models.category import Category
     from app.models.goal import Goal
+    from app.models.recurring import RecurringTransaction
     from app.models.transaction import Transaction
 
 
@@ -37,5 +38,8 @@ class User(Base):
         back_populates="user", cascade="all, delete-orphan"
     )
     goals: Mapped[list["Goal"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    recurring_transactions: Mapped[list["RecurringTransaction"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
