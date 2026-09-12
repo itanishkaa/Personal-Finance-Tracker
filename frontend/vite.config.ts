@@ -10,7 +10,7 @@ export default defineConfig({
       // Forward API calls to the FastAPI backend during local dev,
       // so the frontend can call relative paths like /api/expenses.
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://localhost:8080',
         changeOrigin: true,
       },
     },

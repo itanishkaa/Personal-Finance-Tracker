@@ -7,9 +7,11 @@ import {
 } from "../api/transactions";
 import { getCategories } from "../api/categories";
 import { getOverview } from "../api/analytics";
+import { getFinancialHealth } from "../api/health";
 import { extractErrorMessage } from "../api/client";
 import type { Category } from "../types/category";
 import type { Overview } from "../types/analytics";
+import type { FinancialHealth } from "../types/health";
 import type { Transaction, TransactionInput } from "../types/transaction";
 import { formatCurrency } from "../utils/format";
 import Header from "../components/Header";
@@ -18,11 +20,13 @@ import TransactionList from "../components/TransactionList";
 import TransactionChart from "../components/TransactionChart";
 import DateFilter from "../components/DateFilter";
 import StubCard from "../components/StubCard";
+import FinancialHealthCard from "../components/FinancialHealthCard";
 
 function Dashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [overview, setOverview] = useState<Overview | null>(null);
+  const [health, setHealth] = useState<FinancialHealth | null>(null);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(true);
@@ -82,6 +86,12 @@ function Dashboard() {
     getCategories()
       .then(setCategories)
       .catch(() => setCategories([]));
+    // The health score always covers the current calendar month (the
+    // backend takes no date params for it), so it's fetched once on
+    // mount rather than tied to the transaction date filter below.
+    getFinancialHealth()
+      .then(setHealth)
+      .catch(() => setHealth(null));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -89,6 +99,11 @@ function Dashboard() {
     try {
       await addTransaction(transaction);
       await refresh();
+      // A new transaction can shift the health score (savings rate,
+      // budget adherence, etc.) - refresh it alongside everything else.
+      getFinancialHealth()
+        .then(setHealth)
+        .catch(() => {});
     } catch (err) {
       setError(extractErrorMessage(err, "Failed to add entry."));
     }
@@ -101,6 +116,9 @@ function Dashboard() {
     try {
       await updateTransaction(id, transaction);
       await refresh();
+      getFinancialHealth()
+        .then(setHealth)
+        .catch(() => {});
     } catch (err) {
       setError(extractErrorMessage(err, "Failed to update entry."));
     }
@@ -110,6 +128,9 @@ function Dashboard() {
     try {
       await deleteTransaction(id);
       await refresh();
+      getFinancialHealth()
+        .then(setHealth)
+        .catch(() => {});
     } catch (err) {
       setError(extractErrorMessage(err, "Failed to delete entry."));
     }
@@ -160,6 +181,8 @@ function Dashboard() {
             </div>
           )}
         </div>
+
+        {health && <FinancialHealthCard health={health} />}
 
         <TransactionForm
           categories={categories}

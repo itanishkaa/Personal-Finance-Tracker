@@ -13,7 +13,8 @@ from app.schemas.analytics import (
     OverviewOut,
     SpendingAnalyticsOut,
 )
-from app.services import analytics_service
+from app.schemas.health import FinancialHealthOut
+from app.services import analytics_service, health_service
 
 router = APIRouter(prefix="/api/v1/analytics", tags=["analytics"])
 
@@ -71,3 +72,11 @@ def get_monthly_trends(
     db: Session = Depends(get_db_session),
 ):
     return analytics_service.calculate_monthly_trends(db, current_user.id, months)
+
+
+@router.get("/health", response_model=FinancialHealthOut)
+def get_financial_health(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_session),
+):
+    return health_service.calculate_financial_health(db, current_user.id)

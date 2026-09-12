@@ -11,7 +11,7 @@ function Header() {
 
   return (
     <header className="border-b border-line bg-card">
-      <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
+      <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between flex-wrap gap-y-3">
         <div>
           <h1 className="font-display font-bold text-2xl text-ink">FinTrack</h1>
           <p className="text-sm text-ink-soft mt-0.5">
@@ -19,8 +19,8 @@ function Header() {
           </p>
         </div>
         {user && (
-          <div className="flex items-center gap-6">
-            <nav className="flex items-center gap-4">
+          <div className="flex items-center gap-6 flex-wrap">
+            <nav className="flex items-center gap-4 flex-wrap">
               <NavLink to="/" end className={navLinkClass}>
                 Dashboard
               </NavLink>
@@ -35,6 +35,12 @@ function Header() {
               </NavLink>
               <NavLink to="/recurring" className={navLinkClass}>
                 Recurring
+              </NavLink>
+              <NavLink to="/ai-assistant" className={navLinkClass}>
+                AI Assistant
+              </NavLink>
+              <NavLink to="/reports" className={navLinkClass}>
+                Reports
               </NavLink>
             </nav>
             <div className="flex items-center gap-4 border-l border-line pl-4">

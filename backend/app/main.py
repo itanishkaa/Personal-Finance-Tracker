@@ -3,7 +3,17 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api.routes import analytics, auth, budgets, categories, goals, recurring, transactions
+from app.api.routes import (
+    ai,
+    analytics,
+    auth,
+    budgets,
+    categories,
+    goals,
+    recurring,
+    reports,
+    transactions,
+)
 from app.core.config import settings
 from app.db.base import Base
 from app.db.session import engine
@@ -61,3 +71,5 @@ app.include_router(analytics.router)
 app.include_router(budgets.router)
 app.include_router(goals.router)
 app.include_router(recurring.router)
+app.include_router(ai.router)
+app.include_router(reports.router)

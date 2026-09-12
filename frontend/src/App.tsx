@@ -8,6 +8,8 @@ import Analytics from "./pages/Analytics";
 import Budgets from "./pages/Budgets";
 import Goals from "./pages/Goals";
 import Recurring from "./pages/Recurring";
+import AiAssistant from "./pages/AiAssistant";
+import Reports from "./pages/Reports";
 
 function App() {
   return (
@@ -53,6 +55,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <Recurring />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ai-assistant"
+            element={
+              <ProtectedRoute>
+                <AiAssistant />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute>
+                <Reports />
               </ProtectedRoute>
             }
           />

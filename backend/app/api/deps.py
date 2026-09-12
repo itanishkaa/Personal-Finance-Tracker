@@ -2,9 +2,11 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.security import decode_access_token
 from app.db.session import get_db
 from app.models.user import User
+from app.services.ai_client import AIClient
 
 get_db_session = get_db
 
@@ -35,3 +37,13 @@ def get_current_user(
         raise unauthorized
 
     return user
+
+
+def get_ai_client() -> AIClient:
+    """
+    Real Ollama-backed client for production. Tests override this via
+    app.dependency_overrides with a fake implementing the same .chat()
+    interface, so no test depends on Ollama actually running (PRD
+    section 48: "Mock Ollama responses during automated tests").
+    """
+    return AIClient(base_url=settings.ollama_base_url, model=settings.ollama_model)
